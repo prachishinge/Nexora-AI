@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexora AI</title>
+    <link rel="stylesheet" href="style.css?v=20261015_nexora">
+    <link rel="stylesheet" href="markdown.css?v=20261014_3">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide / SVG Icons -->
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar (Nexora AI) -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand-header">
+                <div class="brand-badge-box">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                        <path d="M2 17l10 5 10-5"></path>
+                        <path d="M2 12l10 5 10-5"></path>
+                    </svg>
+                </div>
+                <div class="brand-text-box">
+                    <span class="brand-main-name">Nexora AI</span>
+                    <span class="brand-sub-name">Intelligent Workspace</span>
+                </div>
+            </div>
+
+            <div class="sidebar-top">
+                <button class="new-chat-btn" id="new-chat-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span>New chat</span>
+                </button>
+                <button class="icon-btn mobile-close-sidebar" id="sidebar-close-btn" title="Close sidebar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Exam Quick Categories -->
+            <div class="sidebar-category-pills">
+                <span class="category-header">Exam Quick Focus</span>
+                <div class="pills-list">
+                    <button class="exam-pill" data-prompt="Explain the key differences between Bharatiya Nyaya Sanhita (BNS 2023) and IPC with important section mappings for JMFC / Law exams.">⚖️ JMFC & Law Exams</button>
+                    <button class="exam-pill" data-prompt="Explain the key highlights of the Indian Constitution Fundamental Rights (Articles 12-35) with exam mnemonics for UPSC/MPSC.">🏛️ Polity & UPSC</button>
+                    <button class="exam-pill" data-prompt="Provide top recurring Quantitative Aptitude & Speed Math tricks for Banking / SSC CGL exams with examples.">📊 Quant & Tricks</button>
+                    <button class="exam-pill" data-prompt="Give me a comprehensive summary of major recent Government Schemes, budget key takeaways & Current Affairs.">📰 Current Affairs</button>
+                    <button class="exam-pill" data-prompt="Give me 5 challenging General Studies / Science MCQs with deep explanations and option eliminations.">📝 Daily MCQ Quiz</button>
+                </div>
+            </div>
+
+            <div class="sidebar-history-section">
+                <div class="history-label">Recent Chats</div>
+                <div class="chat-history-list" id="chat-history-list">
+                    <!-- History items dynamically populated -->
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <button class="sidebar-alerts-btn" id="alerts-modal-btn" title="AI Exam & Syllabus Alerts">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span>Exam & Syllabus Alerts</span>
+                    <span class="alerts-badge-dot"></span>
+                </button>
+                <div class="sidebar-backup-row">
+                    <button class="backup-action-btn" id="export-history-btn" title="Download backup of all saved chats">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span>Export Chats</span>
+                    </button>
+                    <button class="backup-action-btn" id="import-history-btn" title="Restore chats from backup file">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        <span>Import</span>
+                    </button>
+                    <input type="file" id="import-history-file-input" accept=".json" style="display:none;" />
+                </div>
+                <button class="clear-history-btn" id="clear-history-btn" title="Clear all chat history">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    <span>Clear conversations</span>
+                </button>
+                <div class="user-profile-badge" id="auth-section">
+                    <a href="login.html" class="login-link">Log In / Sign Up</a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="chat-main">
+            <!-- Top Bar -->
+            <header class="top-nav">
+                <div class="nav-left">
+                    <button class="icon-btn" id="sidebar-toggle-btn" title="Toggle Sidebar">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div class="model-badge">
+                        <span class="model-name">Nexora AI</span>
+                        <span class="model-tag" title="Connected to Live Internet Web Search">🌐 Live Web Search • Real-Time</span>
+                    </div>
+                </div>
+                <div class="nav-right">
+                    <button class="new-chat-top-btn" id="top-new-chat-btn" title="Start New Chat">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        <span>New Chat</span>
+                    </button>
+                    <!-- Settings Button (Right side, ChatGPT style) -->
+                    <button class="icon-btn settings-top-btn" id="settings-btn" title="Settings & Appearance">
+                        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Chat Scrollable Messages -->
+            <div class="chat-scroll-area" id="chat-messages">
+                <!-- Welcome View (ChatGPT empty state) -->
+                <div class="welcome-screen" id="welcome-screen">
+                    <div class="logo-icon">
+                        <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                            <path d="M2 17l10 5 10-5"></path>
+                            <path d="M2 12l10 5 10-5"></path>
+                        </svg>
+                    </div>
+                    <h2>Nexora AI</h2>
+                    <p class="subtitle">AI-powered intelligence for competitive exams, law, research & live analysis</p>
+
+                    <div class="suggestion-grid">
+                        <div class="suggestion-card" data-prompt="What is the complete JMFC (Judicial Magistrate First Class) preliminary & mains exam syllabus and recommended booklist for Maharashtra?">
+                            <div class="card-title">⚖️ JMFC & Law Exams</div>
+                            <div class="card-desc">BNS, BNSS, BSA 2023, CPC & Criminal Law guide</div>
+                        </div>
+                        <div class="suggestion-card" data-prompt="What are the essential articles of the Indian Constitution regarding Emergency Provisions (Articles 352, 356, 360)?">
+                            <div class="card-title">🏛️ Constitution & Polity</div>
+                            <div class="card-desc">Emergency provisions & Article comparisons</div>
+                        </div>
+                        <div class="suggestion-card" data-prompt="Explain the key differences between Bharatiya Nyaya Sanhita (BNS) and IPC with section changes.">
+                            <div class="card-title">📜 New Criminal Laws (BNS)</div>
+                            <div class="card-desc">Murder, Rape, Cheating & Zero FIR changes</div>
+                        </div>
+                        <div class="suggestion-card" data-prompt="Give me a 5-question mock test on Modern Indian History (1857 to 1947) with explanations.">
+                            <div class="card-title">📖 History & Freedom Struggle</div>
+                            <div class="card-desc">Modern History PYQ style practice test</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Input Area with Attachments (File, Folder, Images) & Voice Speech -->
+            <div class="chat-bottom-dock">
+                <div class="input-box-wrapper" id="input-box-wrapper">
+                    <!-- Drop Zone Overlay for Drag & Drop -->
+                    <div class="drag-drop-overlay" id="drag-drop-overlay">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        <span>Drop files, folder, or images here</span>
+                    </div>
+
+                    <!-- Attachment Preview Tray (Files, Folders, Images like ChatGPT) -->
+                    <div class="attachment-preview-tray" id="attachment-preview-tray" style="display: none;"></div>
+
+                    <!-- Input Controls Row -->
+                    <div class="input-row">
+                        <!-- ChatGPT style Attachment Button & Popover Menu (Left side of chat bar) -->
+                        <div class="attach-container">
+                            <button id="attach-button" type="button" class="attach-btn" title="Add files, folder, or images" aria-label="Add files, folder, or images">
+                                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                            </button>
+
+                            <!-- Attachment Popover Dropdown Menu (ChatGPT style) -->
+                            <div class="attach-menu-popover" id="attach-menu" style="display: none;">
+                                <div class="attach-menu-header">Attach to chat</div>
+                                <button type="button" class="attach-menu-item" id="attach-file-opt">
+                                    <div class="attach-item-icon file-icon">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                            <polyline points="14 2 14 8 20 8"></polyline>
+                                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                                            <polyline points="10 9 9 9 8 9"></polyline>
+                                        </svg>
+                                    </div>
+                                    <div class="attach-item-text">
+                                        <span class="attach-item-title">Upload File</span>
+                                        <span class="attach-item-desc">PDFs, notes, TXT, DOCX, code</span>
+                                    </div>
+                                </button>
+                                <button type="button" class="attach-menu-item" id="attach-folder-opt">
+                                    <div class="attach-item-icon folder-icon">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="attach-item-text">
+                                        <span class="attach-item-title">Upload Folder</span>
+                                        <span class="attach-item-desc">Entire folder of notes or study materials</span>
+                                    </div>
+                                </button>
+                                <button type="button" class="attach-menu-item" id="attach-image-opt">
+                                    <div class="attach-item-icon image-icon">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                            <polyline points="21 15 16 10 5 21"></polyline>
+                                        </svg>
+                                    </div>
+                                    <div class="attach-item-text">
+                                        <span class="attach-item-title">Upload Photos & Images</span>
+                                        <span class="attach-item-desc">Question papers, diagrams, screenshots</span>
+                                    </div>
+                                </button>
+                                <button type="button" class="attach-menu-item" id="attach-gen-image-opt">
+                                    <div class="attach-item-icon gen-image-icon">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="attach-item-text">
+                                        <span class="attach-item-title">🎨 Generate AI Image</span>
+                                        <span class="attach-item-desc">Create charts, diagrams, posters & art</span>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Hidden File Inputs -->
+                        <input type="file" id="file-upload-input" multiple style="display: none;" accept=".pdf,.txt,.md,.doc,.docx,.csv,.json,.py,.js,.html,.css,.xml,.rtf">
+                        <input type="file" id="folder-upload-input" webkitdirectory directory multiple style="display: none;">
+                        <input type="file" id="image-upload-input" accept="image/*" multiple style="display: none;">
+
+                        <textarea 
+                            id="message-input" 
+                            placeholder="Ask anything, attach files/images, or speak..." 
+                            rows="1"
+                        ></textarea>
+                        <!-- Voice Input Button -->
+                        <button id="voice-button" type="button" title="Voice Input (Click to speak)" class="voice-btn">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                                <line x1="12" y1="19" x2="12" y2="23"></line>
+                                <line x1="8" y1="23" x2="16" y2="23"></line>
+                            </svg>
+                        </button>
+                        <!-- Send Button -->
+                        <button id="send-button" title="Send message" disabled>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="input-disclaimer">
+                    <span id="voice-status-indicator" style="display:none; color: #ef4444; margin-right: 8px; font-weight: 500;">🎙️ Listening... Speak now</span>
+                    Nexora AI can make mistakes. Verify important dates with official commission sources.
+                    <button id="bottom-alerts-btn" class="bottom-alerts-link">🔔 Exam Alerts</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- AI Study Plan & Exam Alert Notification Modal -->
+    <div class="modal-backdrop" id="alerts-modal" style="display: none;">
+        <div class="alerts-modal-content">
+            <div class="alerts-modal-header">
+                <div class="modal-header-info">
+                    <div class="modal-icon-badge">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10a37f" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3>Nexora AI • Exam & Syllabus Notification Center</h3>
+                        <p class="modal-sub">Stay updated with instant email alerts whenever new syllabus or exam schedules are released.</p>
+                    </div>
+                </div>
+                <button class="modal-close-btn" id="close-alerts-modal-btn">&times;</button>
+            </div>
+
+            <div class="alerts-modal-body">
+                <!-- User Subscription Status / Form -->
+                <div class="alert-subscription-card">
+                    <h4>🔔 Your Alert Subscription</h4>
+                    <p class="alert-desc">Enter your email and target exams to receive verified alerts when new syllabus is live or commission dates change.</p>
+                    <form id="alert-sub-form" class="alert-sub-form">
+                        <div class="sub-form-row">
+                            <input type="email" id="alert-email" placeholder="Enter your email address" required />
+                            <select id="alert-exam" required>
+                                <option value="JMFC & Judicial Services">⚖️ JMFC & Judicial Services (Civil Judge / APP)</option>
+                                <option value="MH CET Law & CLAT">⚖️ MH CET Law (3 & 5 Yr LL.B) / CLAT</option>
+                                <option value="UPSC Civil Services">🏛️ UPSC Civil Services (CSE)</option>
+                                <option value="MPSC State Services">🎯 MPSC (Rajyaseva & Combine)</option>
+                                <option value="SSC CGL / CHSL">📊 SSC CGL / CHSL</option>
+                                <option value="Banking IBPS / SBI PO">🏦 Banking (IBPS / SBI PO & Clerk)</option>
+                                <option value="Railways RRB NTPC">🚆 Railways (RRB NTPC & Group D)</option>
+                            </select>
+                            <button type="submit" id="save-alert-btn" class="save-alert-btn">Activate Email Alerts</button>
+                        </div>
+                    </form>
+                    <div id="alert-sub-success" class="alert-sub-success" style="display: none;"></div>
+                </div>
+
+                <!-- Latest Live Exam & Syllabus Bulletins -->
+                <div class="live-bulletins-section">
+                    <div class="bulletin-header">
+                        <h4>📢 Live Exam Bulletins & Syllabus Updates</h4>
+                        <button class="send-sample-email-btn" id="send-test-alert-btn" title="Simulate sending email alert">
+                            ✉️ Send Test Alert to My Email
+                        </button>
+                    </div>
+
+                    <div class="bulletins-list">
+                        <div class="bulletin-card highlight">
+                            <div class="bulletin-tag live">NEW LAW SYLLABUS</div>
+                            <h5>Maharashtra JMFC & APP 2026: New Criminal Laws (BNS, BNSS, BSA) In Effect</h5>
+                            <p>MPSC Judicial Magistrate First Class & Public Prosecutor recruitment officially tests candidates under Bharatiya Nyaya Sanhita 2023.</p>
+                            <span class="bulletin-time">Updated • Maharashtra Judicial Services</span>
+                        </div>
+                        <div class="bulletin-card">
+                            <div class="bulletin-tag schedule">SCHEDULE UPDATED</div>
+                            <h5>UPSC Civil Services 2026: Prelims & Mains Syllabus Revision Notice</h5>
+                            <p>Commission released updated pattern guidelines emphasizing Environmental Economics and AI ethics in GS Paper IV.</p>
+                            <span class="bulletin-time">Notification No. 04/2026-CSP</span>
+                        </div>
+                        <div class="bulletin-card">
+                            <div class="bulletin-tag schedule">SCHEDULE UPDATED</div>
+                            <h5>MPSC Rajyaseva 2026: Revised Exam Calendar Published</h5>
+                            <p>Preliminary exam dates scheduled for May. Online application portal opens shortly on official portal.</p>
+                            <span class="bulletin-time">Yesterday • Official Gazette MPSC-2026/02</span>
+                        </div>
+                        <div class="bulletin-card">
+                            <div class="bulletin-tag date">EXAM NOTICE</div>
+                            <h5>SSC CGL 2026: Tier-1 City Intimation Slip & Syllabus Blueprint</h5>
+                            <p>Tier-1 Computer Based Examination schedule confirmed. Revised Reasoning & English marking scheme active.</p>
+                            <span class="bulletin-time">2 days ago • Staff Selection Commission</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal (ChatGPT style) -->
+    <div class="modal-backdrop" id="settings-modal" style="display: none;">
+        <div class="settings-modal-content">
+            <div class="settings-modal-header">
+                <h3>Nexora AI Settings</h3>
+                <button class="modal-close-btn" id="close-settings-modal-btn">&times;</button>
+            </div>
+            <div class="settings-modal-body">
+                <!-- Theme Option -->
+                <div class="setting-item">
+                    <div class="setting-item-info">
+                        <span class="setting-title">Theme</span>
+                        <span class="setting-desc">Choose your preferred visual appearance</span>
+                    </div>
+                    <div class="theme-switch-group">
+                        <button class="theme-btn active" data-theme="dark" title="Dark Theme">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                            </svg>
+                            <span>Dark</span>
+                        </button>
+                        <button class="theme-btn" data-theme="light" title="Light Theme">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="5"></circle>
+                                <line x1="12" y1="1" x2="12" y2="3"></line>
+                                <line x1="12" y1="21" x2="12" y2="23"></line>
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                                <line x1="1" y1="12" x2="3" y2="12"></line>
+                                <line x1="21" y1="12" x2="23" y2="12"></line>
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                            </svg>
+                            <span>Light</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Font Size Option -->
+                <div class="setting-item">
+                    <div class="setting-item-info">
+                        <span class="setting-title">Chat Font Size</span>
+                        <span class="setting-desc">Adjust reading text size in messages</span>
+                    </div>
+                    <select id="setting-font-size" class="setting-select">
+                        <option value="normal">Default</option>
+                        <option value="large">Large (Easy Read)</option>
+                    </select>
+                </div>
+
+                <!-- Web Search Toggle -->
+                <div class="setting-item">
+                    <div class="setting-item-info">
+                        <span class="setting-title">Real-Time Web Browsing</span>
+                        <span class="setting-desc">Automatically fetch latest live facts & news</span>
+                    </div>
+                    <span class="setting-status-badge">Active (Auto)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Preview Lightbox Modal (Click to inspect questions & images) -->
+    <div class="image-lightbox-backdrop" id="image-lightbox-modal" style="display: none;">
+        <div class="image-lightbox-content">
+            <div class="image-lightbox-top-actions">
+                <button class="image-lightbox-download" id="lightbox-download-btn" title="Download Image">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span>Download Image</span>
+                </button>
+                <button class="image-lightbox-close" id="close-lightbox-btn" title="Close preview">&times;</button>
+            </div>
+            <img id="lightbox-img" src="" alt="Enlarged attachment preview" />
+            <div id="lightbox-caption" class="lightbox-caption"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
