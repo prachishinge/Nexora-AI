@@ -36,16 +36,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- UNIFIED BACKEND API FETCHER ---
-    // Automatically connects whether frontend is opened via backend (8000/8080), Live Server (5500), or file://
+    // Automatically connects whether frontend is deployed on Vercel (HTTPS), opened via backend (8000/8080), Live Server (5500), or file://
     async function backendFetch(path, options = {}) {
         const isHostedOnBackend = window.location.port === '8000' || window.location.port === '8080';
+        const isHttps = window.location.protocol === 'https:';
         const endpoints = [];
-        if (isHostedOnBackend) {
+
+        // 1. On HTTPS (Vercel deployment) or when hosted directly on backend, use relative /api path first
+        if (isHttps || isHostedOnBackend) {
             endpoints.push(path);
         }
+
+        // 2. Local fallback endpoints
         endpoints.push(`http://127.0.0.1:8000${path}`);
         endpoints.push(`http://127.0.0.1:8080${path}`);
-        if (!isHostedOnBackend && window.location.protocol !== 'file:') {
+
+        // 3. Dev server fallback
+        if (!endpoints.includes(path) && window.location.protocol !== 'file:') {
             endpoints.push(path);
         }
 
@@ -65,13 +72,16 @@ document.addEventListener('DOMContentLoaded', () => {
         throw lastErr || new Error('Backend connection failed');
     }
 
-    // Helper to resolve backend URLs (images, downloads) across ports (5500 Live Server, 8000, 8080, file://)
+    // Helper to resolve backend URLs (images, downloads) across ports and environments
     function resolveBackendUrl(url) {
         if (!url) return '';
         if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:') || url.startsWith('blob:')) {
             return url;
         }
         if (url.startsWith('/api/')) {
+            if (window.location.protocol === 'https:') {
+                return url;
+            }
             const isHostedOnBackend = window.location.port === '8000' || window.location.port === '8080';
             if (isHostedOnBackend) {
                 return url;
