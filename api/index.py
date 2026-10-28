@@ -130,53 +130,80 @@ def send_test_alert(req: TestAlertRequest):
         "details": alert_payload
     }
 
+# --- USER-ISOLATED PERMANENT CHAT SESSIONS STORAGE ---
 SESSIONS_FILE = os.path.join(DATA_DIR, "chat_sessions.json")
 
-def load_server_sessions():
+def load_all_sessions_db() -> dict:
     if not os.path.exists(SESSIONS_FILE):
-        return []
+        return {}
     try:
         with open(SESSIONS_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+            data = json.load(f)
+            if isinstance(data, dict):
+                return data
+            return {}
     except Exception as e:
-        return []
+        return {}
 
-def save_server_sessions(sessions):
+def save_all_sessions_db(db: dict):
     try:
         with open(SESSIONS_FILE, "w", encoding="utf-8") as f:
-            json.dump(sessions, f, ensure_ascii=False, indent=2)
+            json.dump(db, f, ensure_ascii=False, indent=2)
         return True
     except Exception as e:
         return False
 
 @app.get("/api/sessions")
-def get_sessions():
-    return {"sessions": load_server_sessions()}
+def get_sessions(user_id: Optional[str] = None):
+    # If no user_id is provided or guest, do NOT return any other user's sessions!
+    if not user_id or user_id.strip().lower() in ("guest", "null", "undefined", "user", ""):
+        return {"sessions": []}
+    clean_user = user_id.strip().lower()
+    db = load_all_sessions_db()
+    return {"sessions": db.get(clean_user, [])}
 
 class SessionsPayload(BaseModel):
+    user_id: Optional[str] = None
     sessions: List[Any]
 
 @app.post("/api/sessions")
 def save_sessions(payload: SessionsPayload):
+    user_id = payload.user_id
+    if not user_id or user_id.strip().lower() in ("guest", "null", "undefined", "user", ""):
+        # Guests keep sessions strictly local on their device, not shared globally on server
+        return {"success": True, "count": 0, "sessions": []}
+    clean_user = user_id.strip().lower()
     new_sessions = payload.sessions or []
-    existing = load_server_sessions()
+    db = load_all_sessions_db()
+    existing = db.get(clean_user, [])
     existing_map = {s.get("id"): s for s in existing if isinstance(s, dict) and s.get("id")}
     for s in new_sessions:
         if isinstance(s, dict) and s.get("id"):
             existing_map[s["id"]] = s
     merged = list(existing_map.values())
     merged.sort(key=lambda x: x.get("timestamp", 0), reverse=True)
-    save_server_sessions(merged)
+    db[clean_user] = merged
+    save_all_sessions_db(db)
     return {"success": True, "count": len(merged), "sessions": merged}
 
 @app.delete("/api/sessions/{session_id}")
-def delete_session(session_id: str):
-    existing = load_server_sessions()
+def delete_session(session_id: str, user_id: Optional[str] = None):
+    if not user_id or user_id.strip().lower() in ("guest", "null", "undefined", "user", ""):
+        return {"success": True, "count": 0}
+    clean_user = user_id.strip().lower()
+    db = load_all_sessions_db()
+    existing = db.get(clean_user, [])
     filtered = [s for s in existing if isinstance(s, dict) and s.get("id") != session_id]
-    save_server_sessions(filtered)
+    db[clean_user] = filtered
+    save_all_sessions_db(db)
     return {"success": True, "count": len(filtered)}
 
 @app.delete("/api/sessions")
-def clear_all_sessions():
-    save_server_sessions([])
+def clear_all_sessions(user_id: Optional[str] = None):
+    if not user_id or user_id.strip().lower() in ("guest", "null", "undefined", "user", ""):
+        return {"success": True, "count": 0}
+    clean_user = user_id.strip().lower()
+    db = load_all_sessions_db()
+    db[clean_user] = []
+    save_all_sessions_db(db)
     return {"success": True, "count": 0}

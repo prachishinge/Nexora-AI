@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .join(' ');
     }
 
-    const userName = extractNameFromEmail(userEmail);
+    const userName = localStorage.getItem('userName') || extractNameFromEmail(userEmail);
     const userInitial = (userName.charAt(0) || 'U').toUpperCase();
 
     if (isLoggedIn && authSection) {
@@ -137,30 +137,51 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('logout-btn')?.addEventListener('click', () => {
             localStorage.removeItem('isLoggedIn');
             localStorage.removeItem('userEmail');
+            localStorage.removeItem('userName');
             window.location.reload();
         });
     }
 
-    // --- MULTI-SESSION CHAT HISTORIES (ChatGPT style) ---
-    // Structure in localStorage:
-    // 'sessions': [ { id: 'uuid', title: 'Article 352 explanation', messages: [ { text, isUser, timestamp } ] } ]
-    // 'currentSessionId': null when user opens afresh or starts new chat!
+    // --- USER-ISOLATED MULTI-SESSION CHAT HISTORIES ---
+    // Each user has their own isolated localStorage key: chatSessions_{email}
+    // Guests get chatSessions_guest (never synced to server or leaked to other users)
+    function getCurrentUserKey() {
+        const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        const email = (localStorage.getItem('userEmail') || '').toLowerCase().trim();
+        if (loggedIn && email && email !== 'user') {
+            return `chatSessions_${email}`;
+        }
+        return 'chatSessions_guest';
+    }
+
+    // Clean up any legacy un-scoped shared 'chatSessions' key to prevent old data leaks
+    if (localStorage.getItem('chatSessions')) {
+        localStorage.removeItem('chatSessions');
+    }
     
     function getSessions() {
         try {
-            return JSON.parse(localStorage.getItem('chatSessions') || '[]');
+            const key = getCurrentUserKey();
+            return JSON.parse(localStorage.getItem(key) || '[]');
         } catch (e) {
             return [];
         }
     }
 
     function saveSessions(sessions) {
-        localStorage.setItem('chatSessions', JSON.stringify(sessions));
+        const key = getCurrentUserKey();
+        localStorage.setItem(key, JSON.stringify(sessions));
         persistSessionsToServer(sessions);
     }
 
     async function persistSessionsToServer(sessions) {
-        const payload = { sessions };
+        const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        const email = (localStorage.getItem('userEmail') || '').toLowerCase().trim();
+        // Only persist to server if logged in with a valid user email.
+        // Unauthenticated guests store their chats strictly on their own device!
+        if (!loggedIn || !email || email === 'user') return;
+
+        const payload = { user_id: email, sessions };
         try {
             await backendFetch('/api/sessions', {
                 method: 'POST',
@@ -173,9 +194,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function syncWithServerSessions() {
+        const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        const email = (localStorage.getItem('userEmail') || '').toLowerCase().trim();
+        // If guest (not logged in), DO NOT fetch any sessions from server!
+        // This guarantees any visitor opening the link starts completely fresh.
+        if (!loggedIn || !email || email === 'user') {
+            renderHistorySidebar();
+            return;
+        }
+
         let serverSessions = [];
         try {
-            const res = await backendFetch('/api/sessions');
+            const res = await backendFetch(`/api/sessions?user_id=${encodeURIComponent(email)}`);
             if (res.ok) {
                 const data = await res.json();
                 serverSessions = data.sessions || [];
@@ -185,12 +215,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const localSessions = getSessions();
         const map = new Map();
 
-        // 1. Add server sessions
+        // 1. Add server sessions belonging to this user
         serverSessions.forEach(s => {
             if (s && s.id) map.set(s.id, s);
         });
 
-        // 2. Merge local sessions (keep newest)
+        // 2. Merge local sessions for this user (keep newest)
         localSessions.forEach(s => {
             if (s && s.id) {
                 const existing = map.get(s.id);
@@ -203,9 +233,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const merged = Array.from(map.values());
         merged.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
+        const key = getCurrentUserKey();
+        localStorage.setItem(key, JSON.stringify(merged));
+        renderHistorySidebar();
         if (merged.length > 0) {
-            localStorage.setItem('chatSessions', JSON.stringify(merged));
-            renderHistorySidebar();
             persistSessionsToServer(merged);
         }
     }
@@ -346,7 +377,13 @@ document.addEventListener('DOMContentLoaded', () => {
         let sessions = getSessions();
         sessions = sessions.filter(s => s.id !== id);
         saveSessions(sessions);
-        try { backendFetch(`/api/sessions/${id}`, { method: 'DELETE' }); } catch(e) {}
+        const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        const email = (localStorage.getItem('userEmail') || '').toLowerCase().trim();
+        if (loggedIn && email && email !== 'user') {
+            try { 
+                backendFetch(`/api/sessions/${id}?user_id=${encodeURIComponent(email)}`, { method: 'DELETE' }); 
+            } catch(e) {}
+        }
 
         if (currentSessionId === id) {
             startNewChat();
@@ -356,9 +393,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function clearAllHistory() {
-        if (confirm("Are you sure you want to clear all chat history?")) {
-            localStorage.removeItem('chatSessions');
-            try { backendFetch('/api/sessions', { method: 'DELETE' }); } catch(e) {}
+        if (confirm("Are you sure you want to clear your chat history?")) {
+            const key = getCurrentUserKey();
+            localStorage.removeItem(key);
+            const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            const email = (localStorage.getItem('userEmail') || '').toLowerCase().trim();
+            if (loggedIn && email && email !== 'user') {
+                try { 
+                    backendFetch(`/api/sessions?user_id=${encodeURIComponent(email)}`, { method: 'DELETE' }); 
+                } catch(e) {}
+            }
             startNewChat();
         }
     }
